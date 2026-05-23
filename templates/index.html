@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoicePDF — Premium PDF to Audio Converter</title>
+    <meta name="description" content="Transform your PDFs into immersive, high-quality audio. Convert documents, research papers, and books into spoken voice MP3s.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- Background Elements -->
+    <div class="aurora-bg aurora-1"></div>
+    <div class="aurora-bg aurora-2"></div>
+    <div class="aurora-bg aurora-3"></div>
+    <div class="mouse-glow" id="mouse-glow"></div>
+
+    <div class="app-container">
+        <!-- Top Navigation -->
+        <header class="header">
+            <div class="logo-area">
+                <div class="logo-icon">
+                    <i data-lucide="headphones"></i>
+                </div>
+                <h1>Voice<span>PDF</span></h1>
+            </div>
+            
+            <div class="nav-controls">
+                <button id="theme-toggle" class="btn-icon" aria-label="Toggle Theme">
+                    <i data-lucide="sun" class="icon-light"></i>
+                    <i data-lucide="moon" class="icon-dark"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Workspace -->
+        <main class="workspace">
+            <div class="workspace-grid">
+                
+                <!-- Left Side: Upload and Config -->
+                <section class="panel upload-panel glass">
+                    <div class="panel-header">
+                        <span class="step-num">1</span>
+                        <h2>Upload & Configure</h2>
+                    </div>
+                    
+                    <!-- File Dropzone -->
+                    <div id="dropzone" class="dropzone">
+                        <input type="file" id="pdf-file-input" accept=".pdf" class="file-input">
+                        <div class="dropzone-content">
+                            <div class="dropzone-icon">
+                                <i data-lucide="file-text"></i>
+                            </div>
+                            <h3>Drag & drop your PDF here</h3>
+                            <p>or click to browse files</p>
+                            <span class="file-limits">Max size: 15MB. Only PDF files.</span>
+                        </div>
+                    </div>
+
+                    <!-- File Details Preview -->
+                    <div id="file-details" class="file-details hidden">
+                        <div class="file-meta">
+                            <div class="file-meta-icon">
+                                <i data-lucide="file-check"></i>
+                            </div>
+                            <div class="file-meta-info">
+                                <h4 id="file-name">document.pdf</h4>
+                                <p id="file-size">0.0 MB</p>
+                            </div>
+                            <button id="remove-file-btn" class="btn-icon danger-hover" aria-label="Remove File">
+                                <i data-lucide="trash-2"></i>
+                            </button>
+                        </div>
+
+                        <!-- Mini Stats -->
+                        <div class="stats-row">
+                            <div class="stat-card">
+                                <i data-lucide="book-open"></i>
+                                <span class="stat-label">Pages</span>
+                                <strong id="stat-pages">-</strong>
+                            </div>
+                            <div class="stat-card">
+                                <i data-lucide="type"></i>
+                                <span class="stat-label">Characters</span>
+                                <strong id="stat-chars">-</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Configuration Panel -->
+                    <div class="config-section">
+                        <h3>Voice Configuration</h3>
+                        
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="language-select">Language</label>
+                                <div class="select-wrapper">
+                                    <select id="language-select" class="form-control">
+                                        <option value="en">English</option>
+                                    </select>
+                                    <i data-lucide="chevron-down"></i>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="accent-select">Voice Accent</label>
+                                <div class="select-wrapper">
+                                    <select id="accent-select" class="form-control">
+                                        <option value="com">United States</option>
+                                    </select>
+                                    <i data-lucide="chevron-down"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group pt-3">
+                            <label>Speech Properties</label>
+                            <div class="toggle-group">
+                                <span class="toggle-label">Slow Reading Rate</span>
+                                <label class="switch">
+                                    <input type="checkbox" id="speed-slow-checkbox">
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <button id="generate-btn" class="btn btn-primary btn-glow btn-block" disabled>
+                            <i data-lucide="sparkles"></i>
+                            <span>Generate Audio</span>
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Right Side: Status and Audio Output -->
+                <section class="panel output-panel glass">
+                    <div class="panel-header">
+                        <span class="step-num">2</span>
+                        <h2>Conversion & Playback</h2>
+                    </div>
+
+                    <!-- Idle / Placeholder state -->
+                    <div id="output-idle" class="output-state">
+                        <div class="state-graphic">
+                            <div class="pulse-ring"></div>
+                            <i data-lucide="music"></i>
+                        </div>
+                        <h3>No Audio Generated Yet</h3>
+                        <p>Upload a PDF document and click "Generate Audio" to convert your text to speech.</p>
+                    </div>
+
+                    <!-- Converting / Processing State -->
+                    <div id="output-converting" class="output-state hidden">
+                        <div class="loader-wrapper">
+                            <div class="loader-circle"></div>
+                            <div class="loader-icon">
+                                <i data-lucide="cpu" class="spin"></i>
+                            </div>
+                        </div>
+                        <h3 id="converting-status">Extracting PDF text...</h3>
+                        <p>This may take a moment depending on the length of the PDF.</p>
+                        
+                        <!-- Mini Progress Indicator -->
+                        <div class="progress-bar-container">
+                            <div id="conversion-progress" class="progress-bar"></div>
+                        </div>
+                    </div>
+
+                    <!-- Success / Completed State with Custom Audio Player -->
+                    <div id="output-success" class="output-state hidden">
+                        <div class="success-header">
+                            <div class="badge success-badge">
+                                <i data-lucide="check-circle"></i> Generated Successfully
+                            </div>
+                        </div>
+
+                        <!-- Custom Premium Audio Player -->
+                        <div class="audio-player-card">
+                            <div class="player-visualizer">
+                                <!-- Vector wave animation effect -->
+                                <div class="wave-bars" id="wave-bars">
+                                    <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+                                    <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+                                    <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+                                    <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+                                    <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+                                </div>
+                                <div class="player-now-playing">
+                                    <h4 id="audio-title">Document Audio</h4>
+                                    <p id="audio-subtitle">English (US)</p>
+                                </div>
+                            </div>
+
+                            <audio id="main-audio" class="hidden"></audio>
+
+                            <!-- Player Timeline Control -->
+                            <div class="player-timeline">
+                                <span id="time-current" class="time-label">0:00</span>
+                                <input type="range" id="timeline-slider" class="timeline-slider" min="0" max="100" value="0">
+                                <span id="time-total" class="time-label">0:00</span>
+                            </div>
+
+                            <!-- Player Control Buttons -->
+                            <div class="player-controls">
+                                <div class="player-control-group">
+                                    <!-- Playback rate speed selector -->
+                                    <div class="select-wrapper speed-select-wrapper">
+                                        <select id="playback-speed" class="form-control form-control-sm">
+                                            <option value="0.5">0.5x</option>
+                                            <option value="0.75">0.75x</option>
+                                            <option value="1" selected>1.0x</option>
+                                            <option value="1.25">1.25x</option>
+                                            <option value="1.5">1.5x</option>
+                                            <option value="2">2.0x</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="player-control-group main-controls">
+                                    <button id="skip-back-btn" class="btn-icon" aria-label="Skip Back 10s">
+                                        <i data-lucide="rewind"></i>
+                                    </button>
+                                    <button id="play-pause-btn" class="btn-play-pause" aria-label="Play">
+                                        <i data-lucide="play" class="icon-play"></i>
+                                        <i data-lucide="pause" class="icon-pause hidden"></i>
+                                    </button>
+                                    <button id="skip-forward-btn" class="btn-icon" aria-label="Skip Forward 10s">
+                                        <i data-lucide="fast-forward"></i>
+                                    </button>
+                                </div>
+
+                                <div class="player-control-group volume-controls">
+                                    <button id="mute-btn" class="btn-icon" aria-label="Mute Volume">
+                                        <i data-lucide="volume-2"></i>
+                                    </button>
+                                    <input type="range" id="volume-slider" class="volume-slider" min="0" max="100" value="80">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="action-buttons-container">
+                            <a id="download-audio-btn" href="#" class="btn btn-secondary btn-block">
+                                <i data-lucide="download"></i>
+                                <span>Download MP3</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- PDF Content Preview Box -->
+                    <div id="pdf-preview-box" class="preview-box hidden">
+                        <div class="preview-box-header">
+                            <span><i data-lucide="eye"></i> Text Preview (First 2 pages)</span>
+                        </div>
+                        <div class="preview-box-content">
+                            <pre id="extracted-text-preview">Extracting preview...</pre>
+                        </div>
+                    </div>
+                </section>
+                
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script>
+        // Init Lucide icons initially
+        lucide.createIcons();
+    </script>
+    <!-- Main JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

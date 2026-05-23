@@ -1,0 +1,8 @@
+Flask==3.0.3
+gTTS==2.5.1
+pdfplumber==0.11.0
+pypdf==4.2.0
+Werkzeug==3.0.3
+pytesseract==0.3.10
+pdf2image==1.17.0
+gunicorn==22.0.0
